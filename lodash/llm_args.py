@@ -3,7 +3,7 @@ from colorist import BrightColor, Effect
 from .string_manipulation import indent as string_indent
 
 
-def print_debug_start(logger, before_msg: str = 'Calling GPT', **kwargs):
+def print_debug_start(logger, before_msg: str = 'Calling LLM', **kwargs):
     def ss(s):
         regex = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         s1 = regex.sub('', s)
