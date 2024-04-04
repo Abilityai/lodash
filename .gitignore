@@ -1,0 +1,11 @@
+/.env
+/.env.*
+__pycache__
+*.egg-info
+.idea
+/tmp/**/*
+/var/log/**/*
+/var/cache/**/*
+/var/pdfs/**/*
+/var/dalle/**/*
+.postgres
