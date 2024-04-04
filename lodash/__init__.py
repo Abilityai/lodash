@@ -11,6 +11,7 @@ from .tokens import calculate_tokens_for, calculate_tokens_for_string, maximum_c
 from .cache import ttl_cache
 from .lang import language_detect
 from .llm_args import print_debug_start, print_debug_end
+from .dict_sha import dict_to_sha256
 
 def pprint(*args, **kwargs):
     print(arguments_to_string(*args, **kwargs))
@@ -50,4 +51,5 @@ __all__ = [
     "print_debug_start",
     "print_debug_end",
     "dig",
+    "dict_to_sha256",
 ]
