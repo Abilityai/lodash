@@ -8,6 +8,7 @@ colorist = "==1.6.0"
 tiktoken = "*"
 langdetect = "==1.0.9"
 python-iso639 = "==2023.6.15"
+genson = "*"
 
 [dev-packages]
 
