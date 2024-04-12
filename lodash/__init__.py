@@ -12,6 +12,7 @@ from .cache import ttl_cache
 from .lang import language_detect
 from .llm_args import print_debug_start, print_debug_end
 from .dict_sha import dict_to_sha256
+from .data_schema_parser import data_schema_parser
 
 def pprint(*args, **kwargs):
     print(arguments_to_string(*args, **kwargs))
@@ -53,4 +54,5 @@ __all__ = [
     "dig",
     "digwrite",
     "dict_to_sha256",
+    "data_schema_parser"
 ]
