@@ -18,6 +18,7 @@ setup(
         "tiktoken",
         "langdetect==1.0.9",
         "python-iso639==2023.6.15",
+        "genson",
     ],
     python_requires=">=3.11",
     classifiers=[
