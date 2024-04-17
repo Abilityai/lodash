@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "lodash"
+version = "0.0.3"
+description = "A compilation of quality-of-life tools."
+authors = ["Alex Osypenko <a.osipenko@ability.ai>"]
+readme = "README.md"
+
+
+[tool.poetry.dependencies]
+python = "^3.11"
+colorist = "==1.6.0"
+tiktoken = "*"
+langdetect = "==1.0.9"
+python-iso639 = "==2023.6.15"
+genson = "*"
+
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
