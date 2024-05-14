@@ -64,7 +64,7 @@ def digwrite(dictionary, key, value):
                 if path[0] < len(d):
                     d[path[0]] = val
                 else:
-                    raise IndexError(f"Index {path[0]} out of range for list")
+                    d.append(val)
             elif isinstance(d, dict):
                 d[path[0]] = val
             else:
@@ -96,7 +96,8 @@ if __name__ == '__main__':
         },
         'e': [
             {
-                'f': 3
+                'f': 3,
+                'g': []
             },
             4
         ]
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 
     assertion(dig, 'a.b.c', result=1)
     assertion(dig, 'a.d', result=2)
-    assertion(dig, 'e[0]', result={ 'f': 3 })
+    assertion(dig, 'e[0]', result={ 'f': 3, 'g': []})
     assertion(dig, 'e[0].f', result=3)
     assertion(dig, 'e[12].f', result=None)
     assertion(dig, 'e.0.f', result=None)
@@ -128,7 +129,8 @@ if __name__ == '__main__':
         },
         'e': [
             {
-                'f': 3
+                'f': 3,
+                'g': []
             },
             4
         ]
@@ -142,7 +144,8 @@ if __name__ == '__main__':
         },
         'e': [
             {
-                'f': 4
+                'f': 4,
+                'g': []
             },
             4
         ]
@@ -157,7 +160,24 @@ if __name__ == '__main__':
         },
         'e': [
             {
-                'f': 3
+                'f': 3,
+                'g': []
+            },
+            4
+        ]
+    })
+
+    assertion(digwrite, 'e[0].g[0]', 'some_text', result={
+        'a': {
+            'b': {
+                'c': 1
+            },
+            'd': 2
+        },
+        'e': [
+            {
+                'f': 3,
+                'g': ['some_text']
             },
             4
         ]
