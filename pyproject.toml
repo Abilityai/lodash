@@ -13,6 +13,7 @@ tiktoken = "*"
 langdetect = "==1.0.9"
 python-iso639 = "==2023.6.15"
 genson = "*"
+json5 = "^0.9.25"
 
 
 [tool.poetry.group.dev.dependencies]
