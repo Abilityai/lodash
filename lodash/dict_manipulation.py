@@ -183,4 +183,42 @@ if __name__ == '__main__':
         ]
     })
 
+    assertion(digwrite, 'e[].k[]', 'other_text', result={
+        'a': {
+            'b': {
+                'c': 1
+            },
+            'd': 2
+        },
+        'e': [
+            {
+                'f': 3,
+                'g': ['some_text']
+            },
+            4,
+            {
+                'k': ['other_text']
+            }
+        ]
+    })
+
+    assertion(digwrite, 'e[0].k[].r', 'unexpected_raccoon', result={
+        'a': {
+            'b': {
+                'c': 1
+            },
+            'd': 2
+        },
+        'e': [
+            {
+                'f': 3,
+                'g': [],
+                'k': {
+                    'r': 'unexpected_raccoon'
+                }
+            },
+            4
+        ]
+    })
+
     print("Assertions passed")
