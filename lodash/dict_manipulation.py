@@ -32,7 +32,7 @@ def dig(dictionary, *keys):
         if isinstance(d, (list, tuple)):
             if not isinstance(k, int):
                 return None
-            if k > len(d):
+            if k >= len(d):
                 return None
             return d[k]
         elif isinstance(d, dict):
