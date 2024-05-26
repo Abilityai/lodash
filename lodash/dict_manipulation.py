@@ -1,6 +1,15 @@
 import re
 from copy import deepcopy
 
+def __int(v):
+    try:
+        return int(v)
+    except ValueError:
+        return 0
+
+def __isint(v):
+    return isinstance(v, int) or str(__int(v)) == str(v)
+
 def _to_path(path):
     if isinstance(path, int):
         return [path]
@@ -22,10 +31,8 @@ def _to_path(path):
         else:
             parts.append(match.group(0))
 
-
     re.sub(pattern, add_match, path)
     return parts
-
 
 def dig(dictionary, *keys):
     def _get(d, k):
@@ -53,35 +60,80 @@ def dig(dictionary, *keys):
 
     return dig(_get(dictionary, keys[0]), *keys[1:])
 
-
 def digwrite(dictionary, key, value):
     dictionary = deepcopy(dictionary)
     paths = _to_path(key)
 
     def _set(d, path, val):
         if len(path) == 1:
-            if isinstance(d, list) and isinstance(path[0], int):
-                if path[0] < len(d):
-                    d[path[0]] = val
-                else:
+            key = path[0]
+
+            if key == '':
+                if isinstance(d, list):
                     d.append(val)
-            elif isinstance(d, dict):
-                d[path[0]] = val
+                elif isinstance(d, dict):
+                    raise ValueError(f"Cannot set value at path {path} on {type(d)}")
+            elif isinstance(key, str) and len(key) > 0:
+                if isinstance(d, list):
+                    el = {}
+                    d.append(el)
+                    el[key] = val
+                elif isinstance(d, dict):
+                    d[key] = val
+            elif isinstance(key, int):
+                if isinstance(d, list):
+                    if key >= len(d):
+                        d.append(val)
+                    else:
+                        d[key] = val
+                else:
+                    raise ValueError(f"Cannot set value at path {path} on {type(d)}")
             else:
                 raise ValueError(f"Cannot set value at path {path} on {type(d)}")
         else:
             key = path[0]
-            if isinstance(d, list) and isinstance(key, int):
-                while key >= len(d):
-                    d.append({})
-                _set(d[key], path[1:], val)
-            elif isinstance(d, dict):
-                if key not in d:
-                    d[key] = {}
-                _set(d[key], path[1:], val)
+            key1 = path[1]
+            rest = path[1:]
+
+            if key == '':
+                if key1 == '' or __isint(key1):
+                    el = []
+                    d.append(el)
+                    _set(el, rest, val)
+                elif isinstance(key1, str) and len(key1) > 0:
+                    el = {}
+                    d.append(el)
+                    _set(el, rest, val)
+                else:
+                    raise ValueError(f"Cannot navigate path {path} on {type(d)}")
+            elif isinstance(key, str) and len(key) > 0:
+                if isinstance(d, list):
+                    el = {}
+                    d.append(el)
+                    el[key] = {}
+                    _set(el[key], rest, val)
+                elif isinstance(d, dict):
+                    if key not in d:
+                        if key1 == '' or __isint(key1):
+                            d[key] = []
+                        elif isinstance(key1, str) and len(key1) > 0:
+                            d[key] = {}
+                        else:
+                            raise ValueError(f"Cannot navigate path {path} on {type(d)}")
+                    _set(d[key], rest, val)
+                else:
+                    raise ValueError(f"Cannot navigate path {path} on {type(d)}")
+            elif isinstance(key, int):
+                if isinstance(d, list):
+                    if key >= len(d):
+                        d.append({})
+                    _set(d[key], rest, val)
+                elif isinstance(d, dict):
+                    _set(d[key], rest, val)
+                else:
+                    raise ValueError(f"Cannot navigate path {path} on {type(d)}")
             else:
                 raise ValueError(f"Cannot navigate path {path} on {type(d)}")
-
     _set(dictionary, paths, value)
     return dictionary
 
@@ -193,7 +245,7 @@ if __name__ == '__main__':
         'e': [
             {
                 'f': 3,
-                'g': ['some_text']
+                'g': []
             },
             4,
             {
@@ -213,11 +265,34 @@ if __name__ == '__main__':
             {
                 'f': 3,
                 'g': [],
-                'k': {
-                    'r': 'unexpected_raccoon'
-                }
+                'k': [
+                    {
+                        'r': 'unexpected_raccoon'
+                    }
+                ]
             },
             4
+        ]
+    })
+
+    assertion(digwrite, 'e[][][].r', 'unexpected_raccoon', result={
+        'a': {
+            'b': {
+                'c': 1
+            },
+            'd': 2
+        },
+        'e': [
+            {
+                'f': 3,
+                'g': []
+            },
+            4,
+            [
+                [
+                    { 'r': 'unexpected_raccoon' }
+                ]
+            ]
         ]
     })
 
