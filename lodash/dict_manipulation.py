@@ -1,3 +1,4 @@
+import json
 import re
 from copy import deepcopy
 
@@ -34,6 +35,18 @@ def _to_path(path):
     re.sub(pattern, add_match, path)
     return parts
 
+def _to_path_json_schema(path):
+    paths = _to_path(path)
+    result_paths = []
+    for item in paths:
+        if isinstance(item, str):
+            result_paths.append('properties')
+            result_paths.append(item)
+        if isinstance(item, int):
+            result_paths.append('items')
+
+    return result_paths
+
 def dig(dictionary, *keys):
     def _get(d, k):
         if isinstance(d, (list, tuple)):
@@ -59,6 +72,12 @@ def dig(dictionary, *keys):
             return dig(dictionary, *paths)
 
     return dig(_get(dictionary, keys[0]), *keys[1:])
+
+
+def dig_json_schema(dictionary, key):
+    paths = _to_path_json_schema(key)
+    return dig(dictionary, *paths)
+
 
 def digwrite(dictionary, key, value):
     dictionary = deepcopy(dictionary)
@@ -295,5 +314,36 @@ if __name__ == '__main__':
             ]
         ]
     })
+    from pathlib import Path
+    with open(Path(__file__).parent / 'test_data' / 'schema.json', 'r') as f:
+        json_schema = json.load(f)
+        res = dig_json_schema(json_schema, "targetAudiences[1].generalDescription")
+        assert res == json_schema["properties"]["targetAudiences"]["items"]["properties"]["generalDescription"]
+
+        res = dig_json_schema(json_schema, "targetAudiences[3].profiles[2].jtbd")
+        assert res == json_schema["properties"]["targetAudiences"]["items"]["properties"]["profiles"]["items"]["properties"]["jtbd"]
+
+        res = dig_json_schema(json_schema, "targetAudiences[3].profiles[2].valueProposition.header")
+        assert res == \
+               json_schema["properties"]["targetAudiences"]["items"]["properties"]["profiles"]["items"]["properties"][
+                   "valueProposition"]["properties"]["header"]
+
+        res = dig_json_schema(json_schema, "targetAudiences[3].generalDescription.keyInterests")
+        assert res == json_schema["properties"]["targetAudiences"]["items"]["properties"]["generalDescription"]["properties"]["keyInterests"]
+
+        res = dig_json_schema(json_schema, "targetAudiences[3].generalDescription.audienceOverview")
+        assert res == json_schema["properties"]["targetAudiences"]["items"]["properties"]["generalDescription"]["properties"]["audienceOverview"]
+
+        res = dig_json_schema(json_schema, "product")
+        assert res == json_schema["properties"]["product"]
+
+        res = dig_json_schema(json_schema, "product.description")
+        assert res == json_schema["properties"]["product"]["properties"]["description"]
+
+        res = dig_json_schema(json_schema, "targetAudiences[3]")
+        assert res == json_schema["properties"]["targetAudiences"]["items"]
+
+        res = dig_json_schema(json_schema, "targetAudiences")
+        assert res == json_schema["properties"]["targetAudiences"]
 
     print("Assertions passed")

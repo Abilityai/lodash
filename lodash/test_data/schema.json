@@ -1,0 +1,230 @@
+{
+  "type": "object",
+  "properties": {
+    "product": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The product name"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the product"
+        },
+        "industry": {
+          "type": "string",
+          "description": "Industry to which the product belongs (e.g., Retail, Healthcare, etc.)"
+        },
+        "distributionFormat": {
+          "type": "string",
+          "description": "Format in which the product is distributed (e.g., digital, physical, etc.)"
+        },
+        "benefits": {
+          "type": "array",
+          "description": "Key benefits of the product",
+          "items": {
+            "type": "string"
+          }
+        },
+        "features": {
+          "type": "array",
+          "description": "Key features of the product in simple words",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cost": {
+          "type": "string",
+          "description": "Cost of the product and how it is distributed (one time purchase, subscription, etc)."
+        }
+      },
+      "required": ["name", "description", "industry", "distributionFormat", "benefits", "features", "cost"]
+    },
+    "references": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the competitor"
+          },
+          "url": {
+            "type": "string",
+            "description": "URL of the competitor"
+          },
+          "description": {
+            "type": "string",
+            "description": "Detailed competitor description"
+          },
+          "features": {
+            "type": "string",
+            "description": "Key features of the competitor"
+          },
+          "price": {
+            "type": "string",
+            "description": "Price principle of the competitor"
+          }
+        }
+      }
+    },
+    "targetAudiences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "generalDescription": {
+            "type": "object",
+            "properties": {
+              "audienceOverview": {
+                "type": "string",
+                "description": "Overview of the target audience"
+              },
+              "vibes": {
+                "type": "string",
+                "description": "Vibes or general feel of the target audience. How it can be described to explain to other marketers"
+              },
+              "productFocus": {
+                "type": "string",
+                "description": "Specific aspect of the product that appeals to this target audience"
+              },
+              "relationshipToProduct": {
+                "type": "string",
+                "description": "Explanation of why this audience is interested in the product"
+              },
+              "keyInterests": {
+                "type": "array",
+                "description": "Key interests of this audience. What they value and consider important.",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              }
+            },
+            "required": ["audienceOverview", "vibes", "productFocus", "relationshipToProduct", "keyInterests"]
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "overview": {
+                  "type": "string",
+                  "description": "Overview of the profile"
+                },
+                "competitors": {
+                  "type": "array",
+                  "description": "List of competitors from the existing references relevant to this audience profile",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Name of the competitor"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Description of the competitor"
+                      },
+                      "url": {
+                        "type": "string",
+                        "description": "URL of the competitor"
+                      }
+                    },
+                    "required": ["name", "description", "url"]
+                  },
+                  "minItems": 1
+                },
+                "jtbd": {
+                  "type": "object",
+                  "description": "Jobs-to-be-done framework for this profile from needs/motivation perspective",
+                  "properties": {
+                    "needs": {
+                      "type": "string",
+                      "description": "Needs of the target audience. What exactly they need?"
+                    },
+                    "painPoints": {
+                      "type": "string",
+                      "description": "Pain points of the target audience. Why can't they just stay as they are?"
+                    },
+                    "motivation": {
+                      "type": "string",
+                      "description": "Motivation of the target audience. what motivates them to find a new solution to their needs?"
+                    }
+                  },
+                  "required": ["needs", "painPoints", "motivation"]
+                },
+                "matches": {
+                  "type": "array",
+                  "description": "How the product meets the needs, pain points or motivation of the target audience/profile. How exactly the product matches?",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "samples": {
+                  "type": "array",
+                  "description": "Examples or portraits of the target audience. Real or fictional persons to represent the target audience.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "portrait": {
+                        "type": "string",
+                        "description": "Short description of the profile sample."
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "Long explanation of the profile sample."
+                      }
+                    },
+                    "required": ["portrait", "description"]
+                  }
+                },
+                "pricing": {
+                  "type": "array",
+                  "description": "Pricing tiers for the product. Each tier should be unique, discounts and special propositions should be as separate tier.",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "tier": {
+                        "type": "string",
+                        "description": "Pricing tier"
+                      },
+                      "value": {
+                        "type": "string",
+                        "description": "Value of the pricing tier"
+                      },
+                      "type": {
+                        "type": "string",
+                        "description": "Type of pricing (e.g., subscription, one-time purchase)"
+                      }
+                    },
+                    "required": ["tier", "value", "type"]
+                  }
+                },
+                "valueProposition": {
+                  "type": "object",
+                  "description": "The value proposition of the product for the target audience profile",
+                  "properties": {
+                    "header": {
+                      "type": "string",
+                      "description": "The value proposition header"
+                    },
+                    "subheader": {
+                      "type": "string",
+                      "description": "The value proposition second line"
+                    }
+                  },
+                  "required": ["header", "subheader"]
+                }
+              },
+              "required": ["overview", "profiles"]
+            },
+            "minItems": 1
+          }
+        },
+        "required": ["generalDescription", "profiles"]
+      }
+    }
+  }
+}
