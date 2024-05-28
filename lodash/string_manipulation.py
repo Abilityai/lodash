@@ -19,6 +19,14 @@ def truncate_string(s, max_length=100, symbols='...'):
 def indent(text, padding='    '):
     return '\n'.join(padding + line for line in text.split('\n'))
 
+
+def convert_links_in_text_to_html(text):
+    # This pattern matches URLs starting with http:// or https://
+    url_pattern = r'(https?://[^\s]+)'
+    html_text = re.sub(url_pattern, r'<a href="\1">\1</a>', text)
+    return html_text
+
+
 if __name__ == '__main__':
     def assertion(method, str1, str2):
         res = method(str1)
@@ -31,4 +39,9 @@ if __name__ == '__main__':
     assertion(camel_to_snake, "AbcabcXabcabc", "abcabc_xabcabc")
     assertion(camel_to_snake, "AsdWerSdf", "asd_wer_sdf")
     assertion(camel_to_snake, "BlahBlahBlah", "blah_blah_blah")
+    assertion(convert_links_in_text_to_html, "BlahBlahBlah", "BlahBlahBlah")
+    assertion(
+        convert_links_in_text_to_html,
+        "Visit our homepage at https://www.example.com and our blog at http://www.blog.example.com for more info.",
+        'Visit our homepage at <a href="https://www.example.com">https://www.example.com</a> and our blog at <a href="http://www.blog.example.com">http://www.blog.example.com</a> for more info.')
     print("Assertions passed")
