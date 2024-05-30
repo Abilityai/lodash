@@ -27,6 +27,16 @@ def convert_links_in_text_to_html(text):
     return html_text
 
 
+def extract_domain(url: str) -> str | None:
+    # Regular expression to extract the domain from a URL
+    regex = r"https?://(www\.)?([^/]+)"
+    match = re.search(regex, url)
+    if match:
+        return match.group(2)
+    else:
+        return None
+
+
 if __name__ == '__main__':
     def assertion(method, str1, str2):
         res = method(str1)
@@ -44,4 +54,5 @@ if __name__ == '__main__':
         convert_links_in_text_to_html,
         "Visit our homepage at https://www.example.com and our blog at http://www.blog.example.com for more info.",
         'Visit our homepage at <a href="https://www.example.com">https://www.example.com</a> and our blog at <a href="http://www.blog.example.com">http://www.blog.example.com</a> for more info.')
+    assertion(extract_domain, "https://www.example.ua.com", "example.ua.com")
     print("Assertions passed")
