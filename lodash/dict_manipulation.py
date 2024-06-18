@@ -173,6 +173,8 @@ def cut_up_values(data, max_length: int = 120):
                 transformed[key] = _cut_string(value)
             elif isinstance(value, dict):
                 transformed[key] = _cut_up_object(value)
+            elif isinstance(value, list):
+                transformed[key] = [_cut_up_object(v) for v in value]
             else:
                 transformed[key] = value
         return transformed
