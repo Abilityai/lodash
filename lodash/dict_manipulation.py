@@ -167,19 +167,18 @@ def cut_up_values(data, max_length: int = 120):
             return s[:cut] + f'(...{len(s[cut:-cut])}symbols...)' + s[-cut:]
 
     def _cut_up_object(obj):
-        transformed = {}
-        for key, value in obj.items():
-            if isinstance(value, str):
-                transformed[key] = _cut_string(value)
-            elif isinstance(value, dict):
-                transformed[key] = _cut_up_object(value)
-            elif isinstance(value, list):
-                transformed[key] = [_cut_up_object(v) for v in value]
-            else:
-                transformed[key] = value
-        return transformed
-
-    return _cut_up_object(data)
+        if isinstance(obj, str):
+            return _cut_string(obj)
+        elif isinstance(obj, list):
+            return [_cut_up_object(v) for v in obj]
+        elif isinstance(obj, dict):
+            return {k: _cut_up_object(v) for k, v in obj.items()}
+        elif isinstance(obj, tuple):
+            return tuple(_cut_up_object(v) for v in obj)
+        elif isinstance(obj, set):
+            return {_cut_up_object(v) for v in obj}
+        else:
+            return obj
 
 
 if __name__ == '__main__':
