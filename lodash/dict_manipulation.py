@@ -180,6 +180,8 @@ def cut_up_values(data, max_length: int = 120):
         else:
             return obj
 
+    return _cut_up_object(data)
+
 
 if __name__ == '__main__':
     d = {
