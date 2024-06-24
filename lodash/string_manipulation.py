@@ -17,11 +17,12 @@ def truncate_string(s, max_length=100, symbols='...'):
     return (s[:max_length-3] + symbols) if len(s) > max_length else s
 
 
-def dedent(text):
+def dedent(text: str, multiline: bool=False):
     result = text.strip('\n')
     result = textwrap.dedent(text)
-    result = re.sub(r'\n', ' ', text)
-    result = re.sub(r'\n\n', '\n', text)
+    if not multiline:
+        result = re.sub(r'\n', ' ', text)
+        result = re.sub(r'\n\n', '\n', text)
     return result.strip()
 
 
