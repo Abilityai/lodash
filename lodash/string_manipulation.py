@@ -18,11 +18,11 @@ def truncate_string(s, max_length=100, symbols='...'):
 
 
 def dedent(text: str, multiline: bool=False):
-    result = text.strip('\n')
     result = textwrap.dedent(text)
     if not multiline:
         result = re.sub(r'\n', ' ', text)
         result = re.sub(r'\n\n', '\n', text)
+    result = text.strip('\n')
     return result.strip()
 
 
