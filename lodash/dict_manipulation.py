@@ -157,6 +157,32 @@ def digwrite(dictionary, key, value):
     return dictionary
 
 
+def cut_up_values(data, max_length: int = 120):
+    cut: int = int(max_length/2)
+
+    def _cut_string(s):
+        if len(s) <= max_length*2:
+            return s
+        else:
+            return s[:cut] + f'(...{len(s[cut:-cut])}symbols...)' + s[-cut:]
+
+    def _cut_up_object(obj):
+        if isinstance(obj, str):
+            return _cut_string(obj)
+        elif isinstance(obj, list):
+            return [_cut_up_object(v) for v in obj]
+        elif isinstance(obj, dict):
+            return {k: _cut_up_object(v) for k, v in obj.items()}
+        elif isinstance(obj, tuple):
+            return tuple(_cut_up_object(v) for v in obj)
+        elif isinstance(obj, set):
+            return {_cut_up_object(v) for v in obj}
+        else:
+            return obj
+
+    return _cut_up_object(data)
+
+
 if __name__ == '__main__':
     d = {
         'a': {

@@ -16,6 +16,16 @@ def truncate_string(s, max_length=100, symbols='...'):
 
     return (s[:max_length-3] + symbols) if len(s) > max_length else s
 
+
+def dedent(text: str, multiline: bool=False):
+    result = textwrap.dedent(text)
+    if not multiline:
+        result = re.sub(r'\n', ' ', result)
+        result = re.sub(r'\n\n', '\n', result)
+    result = result.strip('\n')
+    return result.strip()
+
+
 def indent(text, padding='    '):
     return '\n'.join(padding + line for line in text.split('\n'))
 
