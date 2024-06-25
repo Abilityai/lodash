@@ -14,12 +14,14 @@ from .llm_args import print_debug_start, print_debug_end
 from .dict_sha import dict_to_sha256
 from .data_schema_parser import data_schema_parser
 from .gremlin_error_messages import GREMLIN_ERROR_MESSAGES, get_random_gremlin_error_message
+from .env_manipulation import set_env
 
 
 def pprint(*args, **kwargs):
     print(arguments_to_string(*args, **kwargs))
 
 __all__ = [
+    "set_env",
     "pprint",
     "compact",
     "get_element",
