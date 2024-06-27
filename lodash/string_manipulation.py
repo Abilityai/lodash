@@ -20,10 +20,13 @@ def truncate_string(s, max_length=100, symbols='...'):
 def dedent(text: str, multiline: bool=False):
     result = textwrap.dedent(text)
     if not multiline:
-        result = re.sub(r'\n', ' ', result)
-        result = re.sub(r'\n\n', '\n', result)
-    result = result.strip('\n')
-    return result.strip()
+        chunk_results = []
+        chunks = result.split(f"\n\n")
+        for chunk in chunks:
+            chunk_results.append(re.sub(r'\n', ' ', chunk))
+
+        result = '\n'.join(chunk_results)
+    return result.strip('\n').strip()
 
 
 def indent(text, padding='    '):
