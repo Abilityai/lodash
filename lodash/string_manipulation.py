@@ -55,7 +55,7 @@ def truncate_string(s, max_length=100, symbols='...'):
     if len(s) <= max_length*2:
         return s
     else:
-        return s[:cut] + f'(...{len(s[cut:-cut])}symbols...)' + s[-cut:]
+        return s[:cut] + f'({symbols}{len(s[cut:-cut])}symbols{symbols})' + s[-cut:]
 
 
 if __name__ == '__main__':
