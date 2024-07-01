@@ -25,8 +25,8 @@ def colorized_arguments_to_string(*args, **kwds):
     Returns:
         str: The string representation of the arguments.
     """
-    args_str = f"{BrightColor.BLACK},{BrightColor.OFF} ".join(repr(truncate_string(arg)) for arg in args)
-    kwds_str = f"{BrightColor.BLACK},{BrightColor.OFF} ".join(f"{BrightColor.BLACK}{key}={BrightColor.OFF}{BrightColor.WHITE}{repr(truncate_string(value))}{BrightColor.OFF}" for key, value in kwds.items())
+    args_str = f"{BrightColor.BLACK},{BrightColor.OFF} ".join(repr(arg) for arg in args)
+    kwds_str = f"{BrightColor.BLACK},{BrightColor.OFF} ".join(f"{BrightColor.BLACK}{key}={BrightColor.OFF}{BrightColor.WHITE}{repr(value)}{BrightColor.OFF}" for key, value in kwds.items())
 
     to_join = [args_str, kwds_str]
     to_join = [str for str in to_join if str]

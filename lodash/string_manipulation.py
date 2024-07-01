@@ -1,5 +1,6 @@
 import re
 import textwrap
+from typing import Literal
 
 def snake_to_camel(word):
     return ''.join(x.capitalize() or '_' for x in word.split('_'))
@@ -11,10 +12,30 @@ def snake_to_human(word: str) -> str:
     return ' '.join(x.capitalize() for x in word.split('_'))
 
 def truncate_string(s, max_length=100, symbols='...'):
+    return (s[:max_length-3] + symbols) if len(s) > max_length else s
+
+
+def truncate_string(s, max_length=100, symbols='...', position: Literal['start', 'end', 'brackets'] = 'end'):
     if not isinstance(s, str):
         return s
 
-    return (s[:max_length-3] + symbols) if len(s) > max_length else s
+    if len(s) <= max_length:
+        return s
+
+    if position == 'start':
+        return (symbols + s[-(max_length - len(symbols)):])
+
+    if position == 'end':
+        return (s[:max_length - len(symbols)] + symbols)
+
+    if position == 'brackets':
+        cut: int = int(max_length/2)
+        if len(s) <= max_length*2:
+            return s
+        else:
+            return s[:cut] + f'({symbols}{len(s[cut:-cut])}symbols{symbols})' + s[-cut:]
+
+    raise ValueError(f"Invalid position for truncation {position}")
 
 
 def dedent(text: str, multiline: bool=False):
@@ -48,14 +69,6 @@ def extract_domain(url: str) -> str | None:
         return match.group(2)
     else:
         return None
-
-
-def truncate_string(s, max_length=100, symbols='...'):
-    cut: int = int(max_length/2)
-    if len(s) <= max_length*2:
-        return s
-    else:
-        return s[:cut] + f'({symbols}{len(s[cut:-cut])}symbols{symbols})' + s[-cut:]
 
 
 if __name__ == '__main__':

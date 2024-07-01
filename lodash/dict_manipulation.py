@@ -161,7 +161,7 @@ def digwrite(dictionary, key, value):
 def cut_up_values(data, max_length: int = 120, symbols='...'):
     def _cut_up_object(obj):
         if isinstance(obj, str):
-            return truncate(obj, max_length=max_length, symbols=symbols)
+            return truncate(obj, max_length=max_length, symbols=symbols, position='brackets')
         elif isinstance(obj, list):
             return [_cut_up_object(v) for v in obj]
         elif isinstance(obj, dict):
