@@ -50,6 +50,14 @@ def extract_domain(url: str) -> str | None:
         return None
 
 
+def truncate_string(s, max_length=100, symbols='...'):
+    cut: int = int(max_length/2)
+    if len(s) <= max_length*2:
+        return s
+    else:
+        return s[:cut] + f'(...{len(s[cut:-cut])}symbols...)' + s[-cut:]
+
+
 if __name__ == '__main__':
     def assertion(method, str1, str2):
         res = method(str1)

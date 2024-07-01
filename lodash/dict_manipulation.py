@@ -1,6 +1,7 @@
 import json
 import re
 from copy import deepcopy
+from .string_manipulation import truncate_string as truncate
 
 def __int(v):
     try:
@@ -157,18 +158,10 @@ def digwrite(dictionary, key, value):
     return dictionary
 
 
-def cut_up_values(data, max_length: int = 120):
-    cut: int = int(max_length/2)
-
-    def _cut_string(s):
-        if len(s) <= max_length*2:
-            return s
-        else:
-            return s[:cut] + f'(...{len(s[cut:-cut])}symbols...)' + s[-cut:]
-
+def cut_up_values(data, max_length: int = 120, symbols='...'):
     def _cut_up_object(obj):
         if isinstance(obj, str):
-            return _cut_string(obj)
+            return truncate(obj, max_length=max_length, symbols=symbols)
         elif isinstance(obj, list):
             return [_cut_up_object(v) for v in obj]
         elif isinstance(obj, dict):
