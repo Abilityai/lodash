@@ -68,8 +68,9 @@ def flatten(a: list[Any], level: int | None = None) -> list[Any]:
     _flatten_recursive(a, 0)
     return result
 
+CMP = TypeVar('CMP', dict, list)
 
-def compact(a):
+def compact(a: CMP) -> CMP:
     """
     Returns a new list with all the non-None elements from the input list.
 
@@ -79,10 +80,31 @@ def compact(a):
     Returns:
         list: A new list with all the non-None elements from the input list.
     """
-    return [item for item in a if item is not None]
+    if isinstance(a, dict):
+        return {k: v for k, v in a.items() if v is not None}
 
-def compact_blank(a: list[str | None]) -> list[str]:
-    return [item for item in a if item is not None and item.strip() != '']
+    if isinstance(a, list):
+        return [item for item in a if item is not None]
+
+    raise ValueError(f"Unsupported type: {type(a)}")
+
+def compact_blank(a: CMP) -> CMP:
+    """
+    Returns a new list with all the non-empty strings from the input list.
+
+    Args:
+        a (list): The input list.
+
+    Returns:
+        list: A new list with all the non-empty strings from the input list.
+    """
+    if isinstance(a, dict):
+        return {k: v for k, v in a.items() if not(v is None or (isinstance(v, str) and v.strip() == ''))}
+
+    if isinstance(a, list):
+        return [item for item in a if not(item is None or (isinstance(item, str) and item.strip() == ''))]
+
+    raise ValueError(f"Unsupported type: {type(a)}")
 
 
 
@@ -153,3 +175,9 @@ def split_options(head: list, rest: list=[]) -> tuple[list, dict]:
                 raise ValueError(f"Invalid option: {head[i]}")
 
         return rest, opts
+
+
+if __name__ == '__main__':
+    assert compact([1, 2, None, '3', '']) == [1, 2, '3', '']
+    assert compact_blank([1, 2, '', 3]) == [1, 2, 3]
+    assert compact_blank({'a': 1, 'b': 2, 'c': '', 'd': 3, 'e': None}) == {'a': 1, 'b': 2, 'd': 3}
