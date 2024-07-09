@@ -157,6 +157,9 @@ def digwrite(dictionary, key, value):
     _set(dictionary, paths, value)
     return dictionary
 
+def to_path(path: str) -> list[str | int]:
+    """Converts a path-like string into a list of individual elements. Used by the `dig` and `digwrite` functions."""
+    return _to_path(path)
 
 def cut_up_values(data, max_length: int = 120, symbols='...'):
     def _cut_up_object(obj):
@@ -197,6 +200,7 @@ if __name__ == '__main__':
         v = m(d, *args)
         assert v == result, f"Expected: {result} for {args}, got: {repr(v)}"
 
+    assert to_path("a[0].b[3].c") == ['a', 0, 'b', 3, 'c']
     assertion(dig, 'a.b.c', result=1)
     assertion(dig, 'a.d', result=2)
     assertion(dig, 'e[0]', result={ 'f': 3, 'g': []})
