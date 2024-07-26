@@ -78,3 +78,22 @@ def print_debug_end(logger, result):
         logger.info(string_indent(str(result), f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'))
 
     logger.info(f'{BrightColor.BLACK} ∟⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
+
+
+def print_debug_end_pass_usage_directly(logger, result, usage):
+    logger.info(string_indent(
+        f"tokens: "
+        f"{BrightColor.BLACK}completion={Effect.BOLD}{usage.get('completion_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
+        f"{BrightColor.BLACK}prompt={Effect.BOLD}{usage.get('prompt_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
+        f"{BrightColor.BLACK}total={Effect.BOLD}{usage.get('total_tokens', 0)}{Effect.BOLD_OFF}{BrightColor.OFF}",
+        f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'
+    ))
+
+    logger.info(f'{BrightColor.BLACK}  ⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
+
+    if hasattr(result, 'choices'):
+        logger.info(string_indent(str(result.choices[0].message), f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'))
+    else:
+        logger.info(string_indent(str(result), f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'))
+
+    logger.info(f'{BrightColor.BLACK} ∟⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
