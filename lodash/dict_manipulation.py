@@ -1,7 +1,9 @@
 import json
 import re
+
+import json5
 from copy import deepcopy
-from .string_manipulation import truncate_string as truncate
+from lodash.string_manipulation import truncate_string as truncate
 
 def __int(v):
     try:
@@ -177,6 +179,19 @@ def cut_up_values(data, max_length: int = 120, symbols='...'):
             return obj
 
     return _cut_up_object(data)
+
+
+def add_index_comments(json_data):
+    if isinstance(json_data, dict):
+        for key, value in json_data.items():
+            json_data[key] = add_index_comments(value)
+    elif isinstance(json_data, list):
+        for i, item in enumerate(json_data):
+            comment = f' // index: {i}'
+            item = add_index_comments(item)
+
+            json_data[i] = f'{json5.dumps(item)}{comment}'
+    return json_data
 
 
 if __name__ == '__main__':
