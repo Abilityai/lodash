@@ -180,8 +180,7 @@ def cut_up_values(data, max_length: int = 120, symbols='...'):
 
     return _cut_up_object(data)
 
-
-def add_index_comments(json_data):
+def _add_index_comments(json_data):
     if isinstance(json_data, dict):
         for key, value in json_data.items():
             json_data[key] = add_index_comments(value)
@@ -193,6 +192,10 @@ def add_index_comments(json_data):
             json_data[i] = f'{json5.dumps(item)}{comment}'
     return json_data
 
+
+def add_index_comments(json_data):
+    json_data = deepcopy(json_data)
+    return _add_index_comments(json_data)
 
 if __name__ == '__main__':
     d = {
