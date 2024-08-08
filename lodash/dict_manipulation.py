@@ -1,12 +1,11 @@
 import json
 import re
-from functools import singledispatchmethod
-from typing import Any, Callable
 
 import json5.dumper
-import json
 from copy import deepcopy
 from lodash.string_manipulation import truncate_string as truncate
+from lodash._json_comment_dumper import DumpListWithComments
+
 
 def __int(v):
     try:
@@ -182,36 +181,6 @@ def cut_up_values(data, max_length: int = 120, symbols='...'):
             return obj
 
     return _cut_up_object(data)
-
-
-class DumpListWithComments(json5.dumper.DefaultDumper):
-    def dump(self, node):
-        if isinstance(node, list):
-            return self.list_to_json(node)
-        else:
-            return super().dump(node)
-
-    def list_to_json(self, the_list: list[Any]) -> Any:
-        self.env.write('[', indent=0)
-        if self.env.indent:
-            self.env.indent_level += 1
-            self.env.write('\n', indent=0)
-        list_length = len(the_list)
-        for index, item in enumerate(the_list, start=1):
-            self.env.write(' /* index: ' + str(index - 1) + ' */ ')
-            if self.env.indent:
-                self.env.write('')
-            self.dump(item)
-            if index != list_length:
-                if self.env.indent:
-                    self.env.write(',', indent=0)
-                else:
-                    self.env.write(', ', indent=0)
-            if self.env.indent:
-                self.env.write('\n', indent=0)
-        if self.env.indent:
-            self.env.indent_level -= 1
-        self.env.write(']')
 
 
 def dump_json_with_index_comments(obj) -> str:
