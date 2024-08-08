@@ -1,7 +1,10 @@
 import json
 import re
+from functools import singledispatchmethod
+from typing import Any, Callable
 
-import json5
+import json5.dumper
+import json
 from copy import deepcopy
 from lodash.string_manipulation import truncate_string as truncate
 
@@ -180,22 +183,42 @@ def cut_up_values(data, max_length: int = 120, symbols='...'):
 
     return _cut_up_object(data)
 
-def _add_index_comments(json_data):
-    if isinstance(json_data, dict):
-        for key, value in json_data.items():
-            json_data[key] = add_index_comments(value)
-    elif isinstance(json_data, list):
-        for i, item in enumerate(json_data):
-            comment = f' // index: {i}'
-            item = add_index_comments(item)
 
-            json_data[i] = f'{json5.dumps(item)}{comment}'
-    return json_data
+class DumpListWithComments(json5.dumper.DefaultDumper):
+    def dump(self, node):
+        if isinstance(node, list):
+            return self.list_to_json(node)
+        else:
+            return super().dump(node)
+
+    def list_to_json(self, the_list: list[Any]) -> Any:
+        self.env.write('[', indent=0)
+        if self.env.indent:
+            self.env.indent_level += 1
+            self.env.write('\n', indent=0)
+        list_length = len(the_list)
+        for index, item in enumerate(the_list, start=1):
+            self.env.write(' /* index: ' + str(index - 1) + ' */ ')
+            if self.env.indent:
+                self.env.write('')
+            self.dump(item)
+            if index != list_length:
+                if self.env.indent:
+                    self.env.write(',', indent=0)
+                else:
+                    self.env.write(', ', indent=0)
+            if self.env.indent:
+                self.env.write('\n', indent=0)
+        if self.env.indent:
+            self.env.indent_level -= 1
+        self.env.write(']')
 
 
-def add_index_comments(json_data):
-    json_data = deepcopy(json_data)
-    return _add_index_comments(json_data)
+def dump_json_with_index_comments(obj) -> str:
+    dumper = DumpListWithComments()
+    result = json5.dumps(obj, dumper=dumper)
+    return result
+
 
 if __name__ == '__main__':
     d = {
@@ -386,5 +409,9 @@ if __name__ == '__main__':
 
         res = dig_json_schema(json_schema, "targetAudiences")
         assert res == json_schema["properties"]["targetAudiences"]
+    data = {"a": {"b": [{"c": [{"y": ["line1", "line2"]}]}, {}, {}]}}
+    comments = dump_json_with_index_comments(data)
+    assert comments == """{"a": {"b": [ /* index: 0 */ {"c": [ /* index: 0 */ {"y": [ /* index: 0 */ "line1",  /* index: 1 */ "line2"]}]},  /* index: 1 */ {},  /* index: 2 */ {}]}}"""
+    assert json5.loads(comments) == data
 
     print("Assertions passed")
