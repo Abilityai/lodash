@@ -1,9 +1,11 @@
 import json
 import re
 
-import json5
+import json5.dumper
 from copy import deepcopy
 from lodash.string_manipulation import truncate_string as truncate
+from lodash._json_comment_dumper import DumpListWithComments
+
 
 def __int(v):
     try:
@@ -180,22 +182,12 @@ def cut_up_values(data, max_length: int = 120, symbols='...'):
 
     return _cut_up_object(data)
 
-def _add_index_comments(json_data):
-    if isinstance(json_data, dict):
-        for key, value in json_data.items():
-            json_data[key] = add_index_comments(value)
-    elif isinstance(json_data, list):
-        for i, item in enumerate(json_data):
-            comment = f' // index: {i}'
-            item = add_index_comments(item)
 
-            json_data[i] = f'{json5.dumps(item)}{comment}'
-    return json_data
+def dump_json_with_index_comments(obj) -> str:
+    dumper = DumpListWithComments()
+    result = json5.dumps(obj, dumper=dumper)
+    return result
 
-
-def add_index_comments(json_data):
-    json_data = deepcopy(json_data)
-    return _add_index_comments(json_data)
 
 if __name__ == '__main__':
     d = {
@@ -386,5 +378,9 @@ if __name__ == '__main__':
 
         res = dig_json_schema(json_schema, "targetAudiences")
         assert res == json_schema["properties"]["targetAudiences"]
+    data = {"a": {"b": [{"c": [{"y": ["line1", "line2"]}]}, {}, {}]}}
+    comments = dump_json_with_index_comments(data)
+    assert comments == """{"a": {"b": [ /* index: 0 */ {"c": [ /* index: 0 */ {"y": [ /* index: 0 */ "line1",  /* index: 1 */ "line2"]}]},  /* index: 1 */ {},  /* index: 2 */ {}]}}"""
+    assert json5.loads(comments) == data
 
     print("Assertions passed")
