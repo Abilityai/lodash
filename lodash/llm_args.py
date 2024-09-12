@@ -59,9 +59,16 @@ def print_debug_start(logger, before_msg: str = 'Calling LLM', **kwargs):
     logger.info(f'{BrightColor.BLACK}  ⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
 
 
-def print_debug_end(logger, result):
-    if hasattr(result, 'usage'):
-        usage = result.usage
+def print_usage_info(logger, usage):
+    if type(usage).__name__ == "Usage":
+        logger.info(string_indent(
+            f"tokens: "
+            f"{BrightColor.BLACK}output={Effect.BOLD}{getattr(usage, 'output_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
+            f"{BrightColor.BLACK}input={Effect.BOLD}{getattr(usage, 'input_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
+            f"{BrightColor.BLACK}total={Effect.BOLD}{getattr(usage, 'input_tokens', 0) + getattr(usage, 'output_tokens', 0)}{Effect.BOLD_OFF}{BrightColor.OFF}",
+            f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'
+        ))
+    else:
         logger.info(string_indent(
             f"tokens: "
             f"{BrightColor.BLACK}completion={Effect.BOLD}{getattr(usage, 'completion_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
@@ -69,6 +76,11 @@ def print_debug_end(logger, result):
             f"{BrightColor.BLACK}total={Effect.BOLD}{getattr(usage, 'total_tokens', 0)}{Effect.BOLD_OFF}{BrightColor.OFF}",
             f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'
         ))
+
+def print_debug_end(logger, result):
+    if hasattr(result, 'usage'):
+        usage = result.usage
+        print_usage_info(logger, usage)
 
     logger.info(f'{BrightColor.BLACK}  ⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
 
@@ -81,13 +93,7 @@ def print_debug_end(logger, result):
 
 
 def print_debug_end_pass_usage_directly(logger, result, usage):
-    logger.info(string_indent(
-        f"tokens: "
-        f"{BrightColor.BLACK}completion={Effect.BOLD}{usage.get('completion_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
-        f"{BrightColor.BLACK}prompt={Effect.BOLD}{usage.get('prompt_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
-        f"{BrightColor.BLACK}total={Effect.BOLD}{usage.get('total_tokens', 0)}{Effect.BOLD_OFF}{BrightColor.OFF}",
-        f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'
-    ))
+    print_usage_info(logger, usage)
 
     logger.info(f'{BrightColor.BLACK}  ⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
 
