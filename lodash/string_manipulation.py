@@ -11,10 +11,6 @@ def camel_to_snake(name: str) -> str:
 def snake_to_human(word: str) -> str:
     return ' '.join(x.capitalize() for x in word.split('_'))
 
-def truncate_string(s, max_length=100, symbols='...'):
-    return (s[:max_length-3] + symbols) if len(s) > max_length else s
-
-
 def truncate_string(s, max_length=100, symbols='...', position: Literal['start', 'end', 'brackets'] = 'end'):
     if not isinstance(s, str):
         return s
@@ -70,6 +66,38 @@ def extract_domain(url: str) -> str | None:
     else:
         return None
 
+def remove_quotes(text: str) -> str:
+    for _ in range(3):
+        if text.startswith('"') and text.endswith('"'):
+            text = text[1:-1]
+        elif text.startswith("'") and text.endswith("'"):
+            text = text[1:-1]
+        elif text.startswith('```') and text.endswith('```'):
+            # Remove the triple backticks at the start and end
+            lines = text[3:-3].split('\n')
+            # If there's more than one line and the first line doesn't contain spaces
+            # (likely a language specifier), remove the first line
+            lines = lines[1:] if len(lines) > 1 and ' ' not in lines[0] else lines
+            # Join the remaining lines back into a single string
+            text = '\n'.join(lines)
+        elif text.startswith('`') and text.endswith('`'):
+            text = text[1:-1]
+        else:
+            break
+
+    # Check if text ends with ```, but not started with
+    # (likely comment from LLM from the start)
+    if text.endswith('```') and '```' in text[1:-3]:
+        match = re.search(r'```(?:[a-zA-Z]+)?\n(.*?)```', str(text), re.DOTALL)
+        text = match.group(1).strip() if match else text
+        # Check if text starts with ```, but not ended with
+        # (likely comment from LLM at the end)
+        if text.startswith('```') and '```' in text[3:-1]:
+            match = re.search(r'```(?:[a-zA-Z]+)?\n(.*?)```', str(text), re.DOTALL)
+            text = match.group(1).strip() if match else text
+
+    return text.strip('\n')
+
 
 if __name__ == '__main__':
     def assertion(method, str1, str2):
@@ -89,4 +117,14 @@ if __name__ == '__main__':
         "Visit our homepage at https://www.example.com and our blog at http://www.blog.example.com for more info.",
         'Visit our homepage at <a href="https://www.example.com">https://www.example.com</a> and our blog at <a href="http://www.blog.example.com">http://www.blog.example.com</a> for more info.')
     assertion(extract_domain, "https://www.example.ua.com", "example.ua.com")
+
+    # Tests for remove_quotes
+    assertion(remove_quotes, '"Hello, World!"', "Hello, World!")
+    assertion(remove_quotes, "'Python is awesome'", "Python is awesome")
+    assertion(remove_quotes, "```This is a code block```", "This is a code block")
+    assertion(remove_quotes, "`inline code`", "inline code")
+    assertion(remove_quotes, '"""Triple quoted string"""', 'Triple quoted string')
+    assertion(remove_quotes, "No quotes here", "No quotes here")
+    assertion(remove_quotes, '```python\nprint("Hello")\n```', 'print("Hello")')
+
     print("Assertions passed")
