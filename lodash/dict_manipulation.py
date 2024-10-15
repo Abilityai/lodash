@@ -59,7 +59,10 @@ def dig(dictionary, *keys):
                 return None
             if k >= len(d):
                 return None
-            return d[k]
+            try:
+                return d[k]
+            except IndexError:
+                return None
         elif isinstance(d, dict):
             return d.get(k)
         else:
@@ -222,7 +225,7 @@ if __name__ == '__main__':
     assertion(dig, 'a.b.d', result=None)
     assertion(dig, 'a.b.c.d', result=None)
     assertion(dig, ['a', 'b', 'c'], result=1)
-
+    assertion(dig, 'e[0].g[-1]', result=None)
 
     assertion(digwrite, 'a.b.c', 4, result={
         'a': {
