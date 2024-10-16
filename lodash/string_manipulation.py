@@ -3,6 +3,7 @@ import textwrap
 from types import FunctionType, LambdaType
 from typing import Literal, Any
 
+
 def snake_to_camel(word):
     return ''.join(x.capitalize() or '_' for x in word.split('_'))
 
@@ -118,7 +119,9 @@ def match_keypath(template: str, specific: str) -> bool:
         return False
 
     for t_part, s_part in zip(template_parts, specific_parts):
-        if t_part.startswith('[') and t_part != s_part:
+        if t_part.startswith('['):
+            if not re.match(r'\[-?\d+\]$', s_part):
+                return False
             continue
         if t_part != s_part:
             return False
@@ -208,9 +211,13 @@ if __name__ == '__main__':
     should(lambda: match_keypath("list[i].item", "list[2].item"))
     should(lambda: match_keypath("list[i].items[j]", "list[2].items[3]"))
     should(lambda: match_keypath("list.items[i]", "list.items[8]"))
+    should(lambda: match_keypath("list.items[i]", "list.items[-1]"))
     should(lambda: match_keypath("list[i][j]", "list[2][3]"))
+    should(lambda: match_keypath("list[i][j]", "list[-1][-1]"))
     should(lambda: match_keypath("target[i].audience[j]", "target[0].audience[1]"))
     should(lambda: match_keypath("target[i]", "target[0].audience[1]"))
+    should(lambda: match_keypath("target[i]", "target[-1].audience[1]"))
+    should(lambda: match_keypath("target[i]", "target[-1].audience[-100]"))
     shouldnt(lambda: match_keypath("foo", ""))
     shouldnt(lambda: match_keypath("foo[i]", ""))
     shouldnt(lambda: match_keypath("list.items[i]", "list.items[j]"))
