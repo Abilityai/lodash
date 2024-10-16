@@ -132,7 +132,7 @@ if __name__ == '__main__':
     def should(*args: Any):
         if len(args) == 1:
             f = args[0]
-            expected = None
+            expected = True
         else:
             expected, f = args
 
@@ -200,23 +200,25 @@ if __name__ == '__main__':
 
     # # Tests for match_keypath
     should(lambda: match_keypath("", ""))
-    shouldnt(lambda: match_keypath("foo", ""))
-    shouldnt(lambda: match_keypath("foo[i]", ""))
     should(lambda: match_keypath("", "bar"))
     should(lambda: match_keypath("", "bar[2]"))
+    should(lambda: match_keypath("", "bar[2].list[3].barr"))
     should(lambda: match_keypath("list[i]", "list[2].item"))
     should(lambda: match_keypath("list[i]", "list[2]"))
-    shouldnt(lambda: match_keypath("list[i].item", "list[2]"))
-    shouldnt(lambda: match_keypath("competitors[i]", "list[2]"))
     should(lambda: match_keypath("list[i].item", "list[2].item"))
     should(lambda: match_keypath("list[i].items[j]", "list[2].items[3]"))
-    should(lambda: match_keypath("list[i].items[j]", "list[2].items"))
-    shouldnt(lambda: match_keypath("list[i]", "list.items"))
-    should(lambda: match_keypath("list.items[i]", "list.items[j]"))
+    should(lambda: match_keypath("list.items[i]", "list.items[8]"))
     should(lambda: match_keypath("list[i][j]", "list[2][3]"))
-    shouldnt(lambda: match_keypath("list[i][j]", "list[2]"))
     should(lambda: match_keypath("target[i].audience[j]", "target[0].audience[1]"))
-    shouldnt(lambda: match_keypath("target[i]", "target[0].audience[1]"))
+    should(lambda: match_keypath("target[i]", "target[0].audience[1]"))
+    shouldnt(lambda: match_keypath("foo", ""))
+    shouldnt(lambda: match_keypath("foo[i]", ""))
+    shouldnt(lambda: match_keypath("list.items[i]", "list.items[j]"))
+    shouldnt(lambda: match_keypath("list[i].item", "list[2]"))
+    shouldnt(lambda: match_keypath("competitors[i]", "list[2]"))
+    shouldnt(lambda: match_keypath("list[i].items[j]", "list[2].items"))
+    shouldnt(lambda: match_keypath("list[i]", "list.items"))
+    shouldnt(lambda: match_keypath("list[i][j]", "list[2]"))
 
     print("".join(tests))
     if not any(test == "\033[91mF\033[0m" for test in tests):
