@@ -2,6 +2,17 @@ import re
 from colorist import BrightColor, Effect
 from .string_manipulation import indent as string_indent
 
+class StringWithLogMessage(str):
+    log_message: str = "<No log message set>"
+
+OVERWRITE_LOG_MESSAGE = 'log_message'
+
+
+def create_string_with_log_message(value: str, log_message: str) -> StringWithLogMessage:
+    result = StringWithLogMessage(value)
+    setattr(result, OVERWRITE_LOG_MESSAGE, log_message)
+    return result
+
 
 def print_debug_start(logger, before_msg: str = 'Calling LLM', **kwargs):
     def ss(s):
@@ -21,7 +32,11 @@ def print_debug_start(logger, before_msg: str = 'Calling LLM', **kwargs):
         elif isinstance(d, (list, tuple)):
             iterator = enumerate(d)
         else:
-            logger.info(string_indent(d, indent))
+            if hasattr(d, OVERWRITE_LOG_MESSAGE):
+                val = getattr(d, OVERWRITE_LOG_MESSAGE)
+                logger.info(string_indent(val, indent))
+            else:
+                logger.info(string_indent(d, indent))
             return
 
         for key, value in iterator:
@@ -42,9 +57,17 @@ def print_debug_start(logger, before_msg: str = 'Calling LLM', **kwargs):
                             print_recursive(item, indent + (q(1) * (ss(prfx) // 2)))
             elif isinstance(value, str) and f'\n' in value:
                 logger.info(f"{indent}{BrightColor.GREEN}{key}{BrightColor.OFF}:")
-                logger.info(string_indent(value, indent + q(2)))
+                if hasattr(value, OVERWRITE_LOG_MESSAGE):
+                    val = getattr(value, OVERWRITE_LOG_MESSAGE)
+                    logger.info(string_indent(val, indent + q(2)))
+                else:
+                    logger.info(string_indent(value, indent + q(2)))
             else:
-                logger.info(f"{indent}{BrightColor.GREEN}{key}{BrightColor.OFF}: {value}")
+                if hasattr(value, OVERWRITE_LOG_MESSAGE):
+                    val = getattr(value, OVERWRITE_LOG_MESSAGE)
+                    logger.info(f"{indent}{BrightColor.GREEN}{key}{BrightColor.OFF}: {val}")
+                else:
+                    logger.info(f"{indent}{BrightColor.GREEN}{key}{BrightColor.OFF}: {value}")
             i += 1
 
     sorted_keys = []
