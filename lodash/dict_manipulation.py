@@ -109,7 +109,7 @@ def digwrite(dictionary, key, value):
                     d[key] = val
             elif isinstance(key, int):
                 if isinstance(d, list):
-                    if key >= len(d):
+                    if key >= len(d) or len(d) == 0:
                         d.append(val)
                     else:
                         d[key] = val
@@ -152,7 +152,7 @@ def digwrite(dictionary, key, value):
                     raise ValueError(f"Cannot navigate path {path} on {type(d)}")
             elif isinstance(key, int):
                 if isinstance(d, list):
-                    if key >= len(d):
+                    if key >= len(d) or len(d) == 0:
                         d.append({})
                     _set(d[key], rest, val)
                 elif isinstance(d, dict):
