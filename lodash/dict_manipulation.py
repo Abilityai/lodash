@@ -52,6 +52,20 @@ def _to_path_json_schema(path):
 
     return result_paths
 
+def fetch(dictionary: dict, *keys, **kwargs):
+    if 'default' not in kwargs and len(keys) > 0:
+        default = keys[-1]
+        keys = keys[:-1]
+    else:
+        default = kwargs['default']
+
+    for key in keys:
+        if key in dictionary:
+            return dictionary.get(key)
+
+    return default
+
+
 def dig(dictionary, *keys):
     def _get(d, k):
         if isinstance(d, (list, tuple)):
@@ -350,6 +364,28 @@ if __name__ == '__main__':
             ]
         ]
     })
+
+    # Tests for fetch function
+    kwargs = {
+        'responsibilities': 'main',
+        'responsibility': 'secondary',
+        'focused': 'tertiary',
+        'focused_on': 'quaternary',
+        'focus': 'quinary',
+        'other': 'not relevant'
+    }
+
+    assert fetch(kwargs, 'responsibilities', 'responsibility', 'focused', 'focused_on', 'focus', default=[]) == 'main'
+    assert fetch(kwargs, 'responsibility', 'focused', 'focused_on', 'focus', default=[]) == 'secondary'
+    assert fetch(kwargs, 'focused', 'focused_on', 'focus', default=[]) == 'tertiary'
+    assert fetch(kwargs, 'focused_on', 'focus', default=[]) == 'quaternary'
+    assert fetch(kwargs, 'focus', []) == 'quinary'
+    assert fetch(kwargs, 'non_existent_key', default=[]) == []
+    assert fetch(kwargs, 'non_existent_key', 'also_non_existent', default='default_value') == 'default_value'
+    assert fetch(kwargs, 'non_existent_key', 'also_non_existent', 'default_value') == 'default_value'
+    assert fetch(kwargs, 'non_existent_key', 'another_non_existent', []) == []
+    assert fetch(kwargs, 'non_existent_key', 'another_non_existent', 'fallback') == 'fallback'
+
     from pathlib import Path
     with open(Path(__file__).parent / 'test_data' / 'schema.json', 'r') as f:
         json_schema = json.load(f)
