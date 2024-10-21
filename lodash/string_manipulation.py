@@ -1,6 +1,8 @@
 import re
 import textwrap
-from typing import Literal
+from types import FunctionType, LambdaType
+from typing import Literal, Any
+
 
 def snake_to_camel(word):
     return ''.join(x.capitalize() or '_' for x in word.split('_'))
@@ -98,33 +100,135 @@ def remove_quotes(text: str) -> str:
 
     return text.strip('\n')
 
+def split_keypath(path: str):
+    parts = path.split('.')
+    subparts = []
+    for p in parts:
+        subparts.extend(re.findall(r'\[.*?\]|[^\[\]]+', p))
+    return subparts
+
+
+def match_keypath(template: str, specific: str) -> bool:
+    template_parts = split_keypath(template)
+    specific_parts = split_keypath(specific)
+
+    if len(template_parts) == 0:
+        return True
+
+    if len(template_parts) > len(specific_parts):
+        return False
+
+    for t_part, s_part in zip(template_parts, specific_parts):
+        if t_part.startswith('['):
+            if not re.match(r'\[-?\d+\]$', s_part):
+                return False
+            continue
+        if t_part != s_part:
+            return False
+
+    return True
 
 if __name__ == '__main__':
-    def assertion(method, str1, str2):
-        res = method(str1)
-        assert res == str2, f"String split incortly input: {repr(str1)}, got: {repr(res)}, expected: {repr(str2)}"
+    import inspect
+    tests: list[str] = []
 
-    assertion(snake_to_camel, "lorem_ipsumlorem_ipsum", "LoremIpsumloremIpsum")
-    assertion(snake_to_camel, "abcabc_xabcabc", "AbcabcXabcabc")
-    assertion(snake_to_camel, "blah_blah_blah", "BlahBlahBlah")
+    def should(*args: Any):
+        if len(args) == 1:
+            f = args[0]
+            expected = True
+        else:
+            expected, f = args
 
-    assertion(camel_to_snake, "AbcabcXabcabc", "abcabc_xabcabc")
-    assertion(camel_to_snake, "AsdWerSdf", "asd_wer_sdf")
-    assertion(camel_to_snake, "BlahBlahBlah", "blah_blah_blah")
-    assertion(convert_links_in_text_to_html, "BlahBlahBlah", "BlahBlahBlah")
-    assertion(
-        convert_links_in_text_to_html,
-        "Visit our homepage at https://www.example.com and our blog at http://www.blog.example.com for more info.",
-        'Visit our homepage at <a href="https://www.example.com">https://www.example.com</a> and our blog at <a href="http://www.blog.example.com">http://www.blog.example.com</a> for more info.')
-    assertion(extract_domain, "https://www.example.ua.com", "example.ua.com")
+        res = f() if callable(f) else f
+        is_correct = (res != False and res is not None) if expected is None else (res == expected)
+        source = inspect.getsource(f).strip()
+        match = re.match(r'(should|shouldnt)\([^)]*\blambda: (.*)\)', source)
+        if is_correct:
+            tests.append("\033[92m.\033[0m")  # Append green dot for success to tests
+        else:
+            if match:
+                source = match.group(2)
+            tests.append(f"\033[91mF\033[0m")
 
-    # Tests for remove_quotes
-    assertion(remove_quotes, '"Hello, World!"', "Hello, World!")
-    assertion(remove_quotes, "'Python is awesome'", "Python is awesome")
-    assertion(remove_quotes, "```This is a code block```", "This is a code block")
-    assertion(remove_quotes, "`inline code`", "inline code")
-    assertion(remove_quotes, '"""Triple quoted string"""', 'Triple quoted string')
-    assertion(remove_quotes, "No quotes here", "No quotes here")
-    assertion(remove_quotes, '```python\nprint("Hello")\n```', 'print("Hello")')
+            print(f"Failed: \033[91m{source}\033[0m, Got: \033[94m{repr(res)}\033[0m, Exp: \033[93m{repr(expected)}\033[0m")
 
-    print("Assertions passed")
+    def shouldnt(*args: Any):
+        if len(args) == 1:
+            func = args[0]
+            expected = False
+        else:
+            expected, func = args
+            expected = not expected
+
+        should(expected, func)
+
+    # Tests for snake_to_camel
+    should("LoremIpsumloremIpsum", lambda: snake_to_camel("lorem_ipsumlorem_ipsum"))
+    should("AbcabcXabcabc", lambda: snake_to_camel("abcabc_xabcabc"))
+    should("BlahBlahBlah", lambda: snake_to_camel("blah_blah_blah"))
+
+    # # Tests for camel_to_snake
+    should("abcabc_xabcabc", lambda: camel_to_snake("AbcabcXabcabc"))
+    should("asd_wer_sdf", lambda: camel_to_snake("AsdWerSdf"))
+    should("blah_blah_blah", lambda: camel_to_snake("BlahBlahBlah"))
+
+    # # Tests for convert_links_in_text_to_html
+    should("BlahBlahBlah", lambda: convert_links_in_text_to_html("BlahBlahBlah"))
+    should(
+        'Visit our homepage at <a href="https://www.example.com">https://www.example.com</a> and our blog at <a href="http://www.blog.example.com">http://www.blog.example.com</a> for more info.',
+        lambda: convert_links_in_text_to_html("Visit our homepage at https://www.example.com and our blog at http://www.blog.example.com for more info.")
+    )
+
+    # # Tests for extract_domain
+    should("example.ua.com", lambda: extract_domain("https://www.example.ua.com"))
+
+    # # Tests for remove_quotes
+    should("Hello, World!", lambda: remove_quotes('"Hello, World!"'))
+    should("Python is awesome", lambda: remove_quotes("'Python is awesome'"))
+    should("This is a code block", lambda: remove_quotes("```This is a code block```"))
+    should("inline code", lambda: remove_quotes("`inline code`"))
+    should('Triple quoted string', lambda: remove_quotes('"""Triple quoted string"""'))
+    should("No quotes here", lambda: remove_quotes("No quotes here"))
+    should('print("Hello")', lambda: remove_quotes('```python\nprint("Hello")\n```'))
+
+    # # Tests for split_keypath
+    should(["foo", "bar", "[baz]"], lambda: split_keypath("foo.bar[baz]"))
+    should(["list", "[i]", "[j]", "items"], lambda: split_keypath("list[i][j].items"))
+    should(["simple"], lambda: split_keypath("simple"))
+    should(["complex", "[j]", "more", "[i]", "[k]"], lambda: split_keypath("complex[j].more[i][k]"))
+    should(["[i]"], lambda: split_keypath("[i]"))
+    should(["nested", "[i]", "path", "[j]", "end"], lambda: split_keypath("nested[i].path[j].end"))
+    should(["numbers", "[3]", "digits", "[2]"], lambda: split_keypath("numbers[3].digits[2]"))
+    should(["foo123", "bar456", "[7]"], lambda: split_keypath("foo123.bar456[7]"))
+
+    # # Tests for match_keypath
+    should(lambda: match_keypath("", ""))
+    should(lambda: match_keypath("", "bar"))
+    should(lambda: match_keypath("", "bar[2]"))
+    should(lambda: match_keypath("", "bar[2].list[3].barr"))
+    should(lambda: match_keypath("list[i]", "list[2].item"))
+    should(lambda: match_keypath("list[i]", "list[2]"))
+    should(lambda: match_keypath("list[i].item", "list[2].item"))
+    should(lambda: match_keypath("list[i].items[j]", "list[2].items[3]"))
+    should(lambda: match_keypath("list.items[i]", "list.items[8]"))
+    should(lambda: match_keypath("list.items[i]", "list.items[-1]"))
+    should(lambda: match_keypath("list[i][j]", "list[2][3]"))
+    should(lambda: match_keypath("list[i][j]", "list[-1][-1]"))
+    should(lambda: match_keypath("target[i].audience[j]", "target[0].audience[1]"))
+    should(lambda: match_keypath("target[i]", "target[0].audience[1]"))
+    should(lambda: match_keypath("target[i]", "target[-1].audience[1]"))
+    should(lambda: match_keypath("target[i]", "target[-1].audience[-100]"))
+    shouldnt(lambda: match_keypath("foo", ""))
+    shouldnt(lambda: match_keypath("foo[i]", ""))
+    shouldnt(lambda: match_keypath("list.items[i]", "list.items[j]"))
+    shouldnt(lambda: match_keypath("list[i].item", "list[2]"))
+    shouldnt(lambda: match_keypath("competitors[i]", "list[2]"))
+    shouldnt(lambda: match_keypath("list[i].items[j]", "list[2].items"))
+    shouldnt(lambda: match_keypath("list[i]", "list.items"))
+    shouldnt(lambda: match_keypath("list[i][j]", "list[2]"))
+
+    print("".join(tests))
+    if not any(test == "\033[91mF\033[0m" for test in tests):
+        print("\033[92mAssertions passed\033[0m")
+    else:
+        print("\033[91mAssertions failed\033[0m")

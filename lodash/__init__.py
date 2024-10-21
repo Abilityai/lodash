@@ -1,4 +1,4 @@
-from .string_manipulation import snake_to_camel, camel_to_snake, indent, dedent, snake_to_human, truncate_string, extract_domain, convert_links_in_text_to_html, truncate_string, remove_quotes
+from .string_manipulation import snake_to_camel, camel_to_snake, indent, dedent, snake_to_human, extract_domain, convert_links_in_text_to_html, truncate_string, remove_quotes, split_keypath, match_keypath
 from .array_manipulation import arguments_to_string, colorized_arguments_to_string, compact, compact_blank, uniq, flatten, fetch_element, get_element, split_options, wrap
 from .dict_manipulation import dig, digwrite, cut_up_values, to_path, dump_json_with_index_comments
 from .load_all import load_all
@@ -39,6 +39,8 @@ __all__ = [
     "colorized_arguments_to_string",
     "snake_to_camel",
     "snake_to_human",
+    "split_keypath",
+    "match_keypath",
     "indent",
     "extract_domain",
     "convert_links_in_text_to_html",
@@ -55,7 +57,6 @@ __all__ = [
     "isnt_method",
     "calculate_tokens_for",
     "calculate_tokens_for_string",
-    "truncate_string",
     "maximum_context_tokens",
     "language_detect",
     "print_debug_start",
