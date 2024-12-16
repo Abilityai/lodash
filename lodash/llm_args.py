@@ -91,6 +91,14 @@ def print_usage_info(logger, usage):
             f"{BrightColor.BLACK}total={Effect.BOLD}{getattr(usage, 'input_tokens', 0) + getattr(usage, 'output_tokens', 0)}{Effect.BOLD_OFF}{BrightColor.OFF}",
             f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'
         ))
+    elif isinstance(usage, dict):
+                logger.info(string_indent(
+            f"tokens: "
+            f"{BrightColor.BLACK}output={Effect.BOLD}{usage.get('output_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
+            f"{BrightColor.BLACK}input={Effect.BOLD}{usage.get('input_tokens', 0)}{Effect.BOLD_OFF},{BrightColor.OFF} "
+            f"{BrightColor.BLACK}total={Effect.BOLD}{usage.get('input_tokens', 0) + usage.get('output_tokens', 0)}{Effect.BOLD_OFF}{BrightColor.OFF}",
+            f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'
+        ))
     else:
         logger.info(string_indent(
             f"tokens: "
@@ -104,11 +112,17 @@ def print_debug_end(logger, result):
     if hasattr(result, 'usage'):
         usage = result.usage
         print_usage_info(logger, usage)
+    elif hasattr(result, 'usage_metadata'):
+        usage = result.usage_metadata
+        usage = {"input_tokens": usage.prompt_token_count, "output_tokens": usage.candidates_token_count, "total_tokens": usage.total_token_count}
+        print_usage_info(logger, usage)
 
     logger.info(f'{BrightColor.BLACK}  ⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯⋯{BrightColor.OFF}')
 
     if hasattr(result, 'choices'):
         logger.info(string_indent(str(result.choices[0].message), f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'))
+    elif hasattr(result, 'candidates'):
+        logger.info(string_indent(str(result.candidates[0]), f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'))
     else:
         logger.info(string_indent(str(result), f'{BrightColor.BLACK} ∣·{BrightColor.OFF}'))
 
