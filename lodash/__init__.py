@@ -15,7 +15,7 @@ from .dict_sha import dict_to_sha256
 from .data_schema_parser import data_schema_parser
 from .gremlin_error_messages import GREMLIN_ERROR_MESSAGES, get_random_gremlin_error_message
 from .env_manipulation import set_env
-
+from .json_schema_manipulation import add_types_to_json_schema
 
 def pprint(*args, **kwargs):
     print(arguments_to_string(*args, **kwargs))
@@ -70,4 +70,5 @@ __all__ = [
     "data_schema_parser",
     "GREMLIN_ERROR_MESSAGES",
     "get_random_gremlin_error_message",
+    "add_types_to_json_schema",
 ]
