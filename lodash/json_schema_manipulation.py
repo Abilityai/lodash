@@ -1,5 +1,6 @@
 import uuid
-from lodash.dict_manipulation import dig
+from lodash.dict_manipulation import dig, dig_json_schema
+import jsonschema
 import copy
 
 
@@ -303,3 +304,90 @@ def validate_and_clean_references(all_data, data):
     return data
 
 
+
+def validate_against_schema(data: dict | list, schema: dict) -> tuple[bool, str]:
+    """Validates data against JSON schema.
+
+    Args:
+        data: The data to validate
+        schema: The JSON schema to validate against
+
+    Returns:
+        tuple[bool, str]: (is_valid, error_message)
+    """
+    ok_message = "validation is passed"
+    try:
+        jsonschema.validate(data, schema)
+        return True, ok_message
+    except jsonschema.ValidationError as e:
+        return False, str(e)
+    except jsonschema.SchemaError as e:  # seems like an internal exception of jsonschema
+        return True, ok_message
+
+
+def extract_references(data) -> list[dict]:
+    """
+    Recursively extracts all references from the data.
+
+    Args:
+        data: The data to extract references from (can be dict, list, or primitive)
+
+    Returns:
+        list[dict]: List of reference objects (dicts with $ref key)
+    """
+    references = []
+
+    if isinstance(data, dict):
+        # If this is a reference, add it to the list
+        if "$ref" in data:
+            references.append(data)
+        # Recursively check all values
+        for value in data.values():
+            references.extend(extract_references(value))
+
+    elif isinstance(data, list):
+        # Recursively check all items in the list
+        for item in data:
+            references.extend(extract_references(item))
+
+    return references
+
+
+def validate_json_schema_with_references(
+    keypath: str,
+    global_schema: dict,
+    all_data: dict
+) -> tuple[bool, str]:
+    """
+    Validates references and other data against the schema.
+
+    Args:
+        keypath (str): Path to the data to validate.
+        global_schema (dict): The complete JSON schema used to validate objects.
+        all_data (dict): Complete data object containing all possible reference targets.
+
+    Returns:
+        tuple[bool, str]: (is_valid, error_message)
+    """
+    # Get schema and data for the keypath
+    schema = dig_json_schema(global_schema, keypath)
+    if schema is None:
+        return False, f"Schema not found for path '{keypath}'"
+    data = dig(all_data, keypath)
+    if data is None:
+        return False, f"Data not found at path '{keypath}'"
+
+    # Extract all references from the data
+    references = extract_references(data)
+    if not references:
+        schema = add_types_to_json_schema(schema)
+        res = validate_against_schema(data, schema)
+        return res
+    else:
+        for ref in references:
+            ref_path = find_path_by_uid(all_data, ref["$ref"])
+            is_valid, message = validate_json_schema_with_references(keypath=ref_path, global_schema=global_schema, all_data=all_data)
+            if not is_valid:
+                return False, message
+    schema = add_types_to_json_schema(schema)
+    return validate_against_schema(data, schema)
