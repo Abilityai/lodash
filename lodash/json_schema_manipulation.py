@@ -1,5 +1,7 @@
 import uuid
 from lodash.dict_manipulation import dig
+import copy
+
 
 def add_types_to_json_schema(schema: dict) -> dict:
     """Adds image, document, and reference type definitions to a JSON schema."""
@@ -154,12 +156,6 @@ def check_for_circular_reference(target_path: str, source_path: str, full_data: 
     """
     Check if adding a reference would create a circular dependency.
     Returns True if a circular reference is detected.
-
-    Args:
-        target_path: Path to check for references
-        source_path: Original path where new reference will be added
-        full_data: Complete data structure to check against
-        visited: Set of already visited paths (internal use for recursion)
     """
     if visited is None:
         visited = set()
@@ -183,16 +179,118 @@ def check_for_circular_reference(target_path: str, source_path: str, full_data: 
     if not target_data:
         return False
 
-    # Recursively check all references in the target
+    def check_value(value):
+        if isinstance(value, str) and value.startswith("$ref:"):
+            ref_uid = value.removeprefix("$ref:")
+            ref_path = find_path_by_uid(full_data, ref_uid)
+            if ref_path and check_for_circular_reference(ref_path, source_path, full_data, visited):
+                return True
+        elif isinstance(value, dict):
+            for v in value.values():
+                if check_value(v):
+                    return True
+        elif isinstance(value, list):
+            for item in value:
+                if check_value(item):
+                    return True
+        return False
+
+    # Check the target_data recursively
     if isinstance(target_data, dict):
         for value in target_data.values():
-            if isinstance(value, str) and value.startswith("$ref:"):
-                ref_uid = value.removeprefix("$ref:")
-                # Find the actual keypath for this UUID using the provided full data
-                ref_path = find_path_by_uid(full_data, ref_uid)
-                if ref_path and check_for_circular_reference(ref_path, source_path, full_data, visited):
-                    return True
+            if check_value(value):
+                return True
+    elif isinstance(target_data, list):
+        for value in target_data:
+            if check_value(value):
+                return True
 
     visited.remove(target_path)
     return False
 
+
+def resolve_references(obj, *, path_data, all_data, current_path="", _first_occurrence_paths=None):
+    """Resolves references in a data structure by replacing $ref UIDs with paths.
+
+    Args:
+        obj: The object to resolve references in
+        path_data: The data from the current path context
+        all_data: The complete data structure
+        current_path: The current path being processed
+        _first_occurrence_paths: Dictionary tracking first occurrences of references
+
+    Returns:
+        The object with resolved references
+    """
+    if _first_occurrence_paths is None:
+        _first_occurrence_paths = {}
+
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            obj[key] = resolve_references(
+                value,
+                path_data=path_data,
+                all_data=all_data,
+                current_path=f"{current_path}.{key}" if current_path else key,
+                _first_occurrence_paths=_first_occurrence_paths
+            )
+
+    elif isinstance(obj, list):
+        for i, item in enumerate(obj):
+            obj[i] = resolve_references(
+                item,
+                path_data=path_data,
+                all_data=all_data,
+                current_path=f"{current_path}[{i}]" if current_path else f"[{i}]",
+                _first_occurrence_paths=_first_occurrence_paths
+            )
+
+    elif isinstance(obj, str) and obj.startswith("$ref:"):
+        ref_uid = obj.removeprefix("$ref:")
+        if ref_uid in _first_occurrence_paths:
+            return f"$ref:{_first_occurrence_paths[ref_uid]}"
+
+        target_path = find_path_by_uid(all_data, ref_uid)
+        read_from_data = dig(path_data, target_path)
+        read_from_all_data = dig(all_data, target_path)
+
+        if read_from_data is not None and read_from_data == read_from_all_data:
+            _first_occurrence_paths[ref_uid] = target_path
+            return f"$ref:{_first_occurrence_paths[ref_uid]}"
+        else:
+            _first_occurrence_paths[ref_uid] = current_path
+            read_from_all_data_copy = copy.deepcopy(read_from_all_data)
+            result = resolve_references(
+                read_from_all_data_copy,
+                path_data=path_data,
+                all_data=all_data,
+                current_path=current_path,
+                _first_occurrence_paths=_first_occurrence_paths
+            )
+            return result
+
+    return obj
+
+
+
+def validate_and_clean_references(all_data, data):
+    """Recursively checks all references and nullifies those pointing to non-existent objects."""
+    if isinstance(data, dict):
+        for key, value in list(data.items()):  # Use list to avoid dictionary size change during iteration
+            if isinstance(value, str) and value.startswith("$ref:"):
+                ref_uid = value.removeprefix("$ref:")
+                ref_path = find_path_by_uid(all_data, ref_uid)
+                if ref_path is None:
+                    data[key] = None
+            else:
+                validate_and_clean_references(all_data=all_data, data=value)
+    elif isinstance(data, list):
+        for i, item in enumerate(data):
+            if isinstance(item, str) and item.startswith("$ref:"):
+                ref_uid = item.removeprefix("$ref:")
+                ref_path = find_path_by_uid(all_data, ref_uid)
+                if ref_path is None:
+                    data[i] = None
+            else:
+                validate_and_clean_references(all_data=all_data, data=item)
+    return data
