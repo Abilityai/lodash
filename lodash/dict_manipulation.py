@@ -44,6 +44,9 @@ def _to_path_json_schema(path):
     paths = _to_path(path)
     result_paths = []
     for item in paths:
+        if item == '':
+            result_paths.append('items')
+            continue
         if isinstance(item, str):
             result_paths.append('properties')
             result_paths.append(item)

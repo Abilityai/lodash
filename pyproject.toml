@@ -20,6 +20,7 @@ pypdf2 = "^3.0.1"
 pymupdf = "^1.24.13"
 ftfy = "^6.3.1"
 aiohttp = "^3.11.11"
+jsonschema = "^4.23.0"
 
 
 [build-system]
