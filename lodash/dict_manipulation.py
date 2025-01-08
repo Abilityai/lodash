@@ -3,7 +3,7 @@ import re
 
 import json5.dumper
 from copy import deepcopy
-from lodash.string_manipulation import truncate_string as truncate
+from lodash.string_manipulation import truncate_string as truncate, match_keypath
 from lodash._json_comment_dumper import DumpListWithComments
 
 
@@ -206,6 +206,44 @@ def cut_up_values(data, max_length: int = 120, symbols='...'):
 def dump_json_with_index_comments(obj) -> str:
     dumper = DumpListWithComments()
     result = json5.dumps(obj, dumper=dumper)
+    return result
+
+def truncate_fields_from_focused_out_fields(*, initial_path: str, data, focused_out_truncate_fields: list[str]) -> dict | list:
+    if not focused_out_truncate_fields:
+        return data
+
+    if isinstance(data, dict):
+        result = {}
+        for key, value in data.items():
+            full_path = f"{initial_path}.{key}" if initial_path else key
+
+            # Check if this path matches any truncate field patterns
+            should_truncate = any(
+                match_keypath(truncate_field, full_path)
+                for truncate_field in focused_out_truncate_fields
+            )
+
+            if should_truncate:
+                result[key] = "[...cut off the data due to context size...]"
+            else:
+                result[key] = truncate_fields_from_focused_out_fields(
+                    initial_path=full_path,
+                    data=value,
+                    focused_out_truncate_fields=focused_out_truncate_fields
+                )
+
+    elif isinstance(data, list):
+        result = [
+            truncate_fields_from_focused_out_fields(
+                initial_path=f"{initial_path}[{i}]",
+                data=item,
+                focused_out_truncate_fields=focused_out_truncate_fields
+            )
+            for i, item in enumerate(data)
+        ]
+    else:
+        result = data
+
     return result
 
 
@@ -424,5 +462,8 @@ if __name__ == '__main__':
     comments = dump_json_with_index_comments(data)
     assert comments == """{"a": {"b": [ /* index: 0 */ {"c": [ /* index: 0 */ {"y": [ /* index: 0 */ "line1",  /* index: 1 */ "line2"]}]},  /* index: 1 */ {},  /* index: 2 */ {}]}}"""
     assert json5.loads(comments) == data
+
+    assert truncate_fields_from_focused_out_fields(initial_path="", data=data, focused_out_truncate_fields=["a.b[i].c[j].y"]) == {
+        "a": {"b": [{"c": [{"y": "[...cut off the data due to context size...]"}]}, {}, {}]}}
 
     print("Assertions passed")
