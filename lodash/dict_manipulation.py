@@ -5,7 +5,7 @@ import json5.dumper
 from copy import deepcopy
 from lodash.string_manipulation import truncate_string as truncate, match_keypath
 from lodash._json_comment_dumper import DumpListWithComments
-
+from typing import Any
 
 def __int(v):
     try:
@@ -243,6 +243,39 @@ def truncate_fields_from_focused_out_fields(*, initial_path: str, data, focused_
         ]
     else:
         result = data
+
+    return result
+
+
+def format_dict_to_markdown(data: dict[str, Any], level: int = 0) -> str:
+    """
+    Format a dictionary into a readable markdown structure.
+
+    Args:
+        data: The dictionary to format
+        level: The current nesting level (for indentation)
+
+    Returns:
+        A formatted markdown string
+    """
+    result = ""
+    indent = "  " * level
+
+    for key, value in data.items():
+        # Format key for readability
+        readable_key = key.replace("_", " ").title()
+
+        if isinstance(value, dict):
+            result += f"{indent}- **{readable_key}**:\n{format_dict_to_markdown(value, level + 1)}"
+        elif isinstance(value, list):
+            result += f"{indent}- **{readable_key}**:\n"
+            for item in value:
+                if isinstance(item, dict):
+                    result += f"{indent}  - {format_dict_to_markdown(item, level + 2)}"
+                else:
+                    result += f"{indent}  - {item}\n"
+        else:
+            result += f"{indent}- **{readable_key}**: {value}\n"
 
     return result
 
